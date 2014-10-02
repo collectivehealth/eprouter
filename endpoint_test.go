@@ -10,7 +10,7 @@ func TestParsePathValid(t *testing.T) {
 
 	inputs := []string{
 		"http://host/api/v1/entity/",
-		"http://host/api/v1/entity/action/",
+		"http://host/api/v1/entity/someid/",
 
 		"/api/v1/entity/",
 		"/api/v2/entity/",
