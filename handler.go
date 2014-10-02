@@ -20,7 +20,7 @@ func StandardCreateHandler(controller CreatePerformer, ctx *Context, createReque
 	}
 	defer requestBody.Close()
 
-	if ctx.End.PrimaryKey != "" {
+	if ctx.Endpoint.PrimaryKey != "" {
 		return ctx.MakeRouteHandlerResultError(http.StatusBadRequest, BadRequestExtraneousPrimaryKeyErrorNumber, BadRequestSyntaxErrorPrefix+" Cannot set primary key")
 	}
 
@@ -138,7 +138,7 @@ type DeleteValidator interface {
 }
 
 func StandardDeleteHandler(ctx *Context, controller DeletePerformer) {
-	if ctx.End.PrimaryKey == "" {
+	if ctx.Endpoint.PrimaryKey == "" {
 		ctx.SendSimpleErrorPayload(http.StatusBadRequest, BadRequestMissingPrimaryKeyErrorNumber, BadRequestPrefix)
 		return
 	}

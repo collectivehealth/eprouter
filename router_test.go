@@ -52,7 +52,7 @@ func (ctrlr *BookController) PerformAuth(routePtr *Route, ctx *Context) (authent
 
 func (self *BookController) GetHandlerV1(ctx *Context) RouteHandlerResult {
 
-	if ctx.End.PrimaryKey == "1" {
+	if ctx.Endpoint.PrimaryKey == "1" {
 
 		var book BookPayload
 		book.PKey = 1
@@ -61,7 +61,7 @@ func (self *BookController) GetHandlerV1(ctx *Context) RouteHandlerResult {
 
 		return ctx.MakeRouteHandlerResultPayloads(book)
 
-	} else if ctx.End.PrimaryKey == "" {
+	} else if ctx.Endpoint.PrimaryKey == "" {
 
 		var book BookPayload
 		book.PKey = 1
@@ -76,7 +76,7 @@ func (self *BookController) GetHandlerV1(ctx *Context) RouteHandlerResult {
 
 	}
 
-	return ctx.MakeRouteHandlerResultError(http.StatusNotFound, 1238187398, "book with id "+ctx.End.PrimaryKey+" not found")
+	return ctx.MakeRouteHandlerResultError(http.StatusNotFound, 1238187398, "book with id "+ctx.Endpoint.PrimaryKey+" not found")
 
 }
 

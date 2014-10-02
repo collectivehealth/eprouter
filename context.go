@@ -10,8 +10,8 @@ import (
 )
 
 type Context struct {
-	Req *http.Request // original http request
-	End Endpoint      // parsed endpoint information
+	Req      *http.Request // original http request
+	Endpoint Endpoint      // parsed endpoint information
 
 	// only populated after a call to ctx.RequestBody()
 	cachedRequestBody      []byte

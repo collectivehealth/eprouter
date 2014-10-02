@@ -286,7 +286,7 @@ func (router *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 	// 2. parse the route
 	endpoint, clientDeepErr, serverDeepErr := parsePath(req.URL, router.BasePath)
-	ctx.End = endpoint
+	ctx.Endpoint = endpoint
 
 	if clientDeepErr != nil {
 		// log.Println("clientDeepErr", clientDeepErr)
@@ -315,7 +315,7 @@ func (router *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 func (router *Router) handleContext(ctx *Context, req *http.Request) {
 
 	// 3. lookup the handler method
-	routePtr, err := getRoute(router.RouteMap, req.Method, ctx.End.VersionStr, ctx.End.EntityName, ctx.End.Action)
+	routePtr, err := getRoute(router.RouteMap, req.Method, ctx.Endpoint.VersionStr, ctx.Endpoint.EntityName, ctx.Endpoint.Action)
 	if err != nil || routePtr == nil {
 		ctx.SendSimpleErrorPayload(http.StatusNotFound, NotFoundErrorNumber, "404 Not Found")
 		return
@@ -323,7 +323,7 @@ func (router *Router) handleContext(ctx *Context, req *http.Request) {
 
 	// 4. Some basic validation
 
-	if req.Method == "POST" && ctx.End.PrimaryKey != "" && len(ctx.End.Extras) == 1 {
+	if req.Method == "POST" && ctx.Endpoint.PrimaryKey != "" && len(ctx.Endpoint.Extras) == 1 {
 		// log.Printf("400 for Method:%v, Endpoint %+v, routePtr:%+v, err:%v", req.Method, ctx.E, routePtr, err)
 		// don't use http.Error!  use our sendErrorPayload instead
 		// http.Error(w, BadRequestExtraneousPrimaryKeyPrefix, http.StatusBadRequest)
@@ -331,7 +331,7 @@ func (router *Router) handleContext(ctx *Context, req *http.Request) {
 		return
 	}
 	//  update requires primary key
-	if (req.Method == "PATCH" || req.Method == "PUT") && ctx.End.PrimaryKey == "" && len(ctx.End.Extras) == 0 {
+	if (req.Method == "PATCH" || req.Method == "PUT") && ctx.Endpoint.PrimaryKey == "" && len(ctx.Endpoint.Extras) == 0 {
 		// log.Printf("400 for Method:%v, Endpoint %+v, routePtr:%+v, err:%v", req.Method, ctx.E, routePtr, err)
 		ctx.SendSimpleErrorPayload(http.StatusBadRequest, BadRequestMissingPrimaryKeyErrorNumber, BadRequestSyntaxErrorPrefix)
 		return
