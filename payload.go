@@ -139,7 +139,7 @@ func writePayloadWrapper(ctx *Context, code int, payloadWrapper *PayloadWrapper)
 
 	ctx.written = true
 	ctx.StatusCode = code
-	ctx.SetHeader(httpHeaderContentType, httpHeaderContentTypeJSON)
+	ctx.SetHeader(HttpHeaderContentType, HttpHeaderContentTypeJSON)
 
 	// This is the old way.  it doesn't give us status info.
 	// enc := json.NewEncoder(ctx.w)

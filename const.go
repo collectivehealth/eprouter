@@ -1,6 +1,6 @@
 package eprouter
 
 const (
-	httpHeaderContentType     = "Content-Type"
-	httpHeaderContentTypeJSON = "application/json"
+	HttpHeaderContentType     = "Content-Type"
+	HttpHeaderContentTypeJSON = "application/json"
 )

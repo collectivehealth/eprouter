@@ -145,11 +145,11 @@ func TestRouter(t *testing.T) {
 	}
 
 	commonTest := func(t *testing.T, response *http.Response, urlsuffix string) {
-		ct := response.Header.Get(httpHeaderContentType)
-		if ct != httpHeaderContentTypeJSON {
+		ct := response.Header.Get(HttpHeaderContentType)
+		if ct != HttpHeaderContentTypeJSON {
 			// t.Logf("response %+v", response)
 			// t.Logf("response.Header %+v", response.Header)
-			t.Error(urlsuffix, "expected \"Content-Type\":", httpHeaderContentTypeJSON, ", got \"Content-Type\":", ct, "contentLength:", response.ContentLength)
+			t.Error(urlsuffix, "expected \"Content-Type\":", HttpHeaderContentTypeJSON, ", got \"Content-Type\":", ct, "contentLength:", response.ContentLength)
 		}
 	}
 

@@ -108,11 +108,30 @@ func (ctx *Context) MakeRouteHandlerResultAlert(code int, errNo int64, alert str
 func (ctx *Context) MakeRouteHandlerResultPayloads(payloads ...Payload) RouteHandlerResult {
 	return RouteHandlerResult{nil, MakePayloadMapFromPayloads(payloads...), nil}
 }
+
+func (ctx *Context) MakeRouteHandlerResultRawBytes(statusCode int, rawBytes []byte, contentType string) RouteHandlerResult {
+	ctx.SetHeader(HttpHeaderContentType, contentType)
+
+	return RouteHandlerResult{nil, nil, func(innerCtx *Context) {
+		if rw, isResponseWriter := innerCtx.w.(http.ResponseWriter); isResponseWriter {
+			rw.WriteHeader(statusCode)
+			if len(rawBytes) == 0 {
+				log.Println("rawBytes", rawBytes, innerCtx.Req.URL)
+			}
+			bytesWritten, err := rw.Write(rawBytes)
+			if err != nil {
+				log.Println("3952513088 WRITE ERROR", err)
+			}
+			innerCtx.ContentLength = bytesWritten
+		}
+	}}
+}
+
 func (ctx *Context) MakeRouteHandlerResultGenericJSON(v interface{}) RouteHandlerResult {
 	return ctx.MakeRouteHandlerResultStatusGenericJSON(http.StatusOK, v)
 }
 func (ctx *Context) MakeRouteHandlerResultStatusGenericJSON(statusCode int, v interface{}) RouteHandlerResult {
-	ctx.SetHeader(httpHeaderContentType, httpHeaderContentTypeJSON)
+	ctx.SetHeader(HttpHeaderContentType, HttpHeaderContentTypeJSON)
 	jsonBytes, err := json.Marshal(v)
 	if err != nil {
 		rerr := NewRouteError(
