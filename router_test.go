@@ -42,9 +42,6 @@ func (payload BookPayload) PayloadType() string {
 type BookController struct {
 }
 
-func (ctrlr *BookController) GetSecretKey(publicKey string) (string, int) {
-	return "abc", 0
-}
 func (ctrlr *BookController) PerformAuth(routePtr *Route, ctx *Context) (authenticationWasSucessful bool, failureToAuthErrorNum int) {
 	// hard code test to fail
 	return false, 3220239796
