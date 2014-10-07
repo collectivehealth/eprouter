@@ -18,8 +18,6 @@ const (
 	BadRequestSyntaxErrorErrorNumber          = 4000000001
 	BadRequestMissingPrimaryKeyErrorNumber    = 4000000002
 	BadRequestExtraneousPrimaryKeyErrorNumber = 4000000003
-	// BadRequestMissingPrimaryKeyPrefix    = BadRequestPrefix + ": Missing Id"
-	// BadRequestExtraneousPrimaryKeyPrefix = BadRequestPrefix + ": Extraneous Id"
 
 	InternalServerErrorPrefix = "500 Internal Server Error"
 )
@@ -294,8 +292,13 @@ func (router *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if clientDeepErr.StatusCode > 299 && clientDeepErr.StatusCode < 999 {
 			code = clientDeepErr.StatusCode
 		}
-		ctx.SendSimpleErrorPayload(code, clientDeepErr.Num, fmt.Sprintf("%d %s (err code: %d)", code, clientDeepErr.EndUserMsg, clientDeepErr.Num))
-		// log.Println("clientDeepErr.Num", clientDeepErr.Num)
+
+		if clientDeepErr.StatusCode == 400 {
+			ctx.SendSimpleErrorPayload(code, clientDeepErr.Num, BadRequestPrefix)
+		} else if clientDeepErr.StatusCode == 404 {
+			ctx.SendSimpleErrorPayload(code, clientDeepErr.Num, NotFoundPrefix)
+		}
+
 		return
 	}
 
@@ -305,7 +308,7 @@ func (router *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if serverDeepErr.StatusCode > 299 && serverDeepErr.StatusCode < 999 {
 			code = serverDeepErr.StatusCode
 		}
-		ctx.SendSimpleErrorPayload(code, serverDeepErr.Num, fmt.Sprintf("%d %s (err code: %d)", code, InternalServerErrorPrefix, serverDeepErr.Num))
+		ctx.SendSimpleErrorPayload(code, serverDeepErr.Num, InternalServerErrorPrefix)
 		return
 	}
 
