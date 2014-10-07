@@ -23,9 +23,6 @@ type Context struct {
 	// router
 	router *Router
 
-	// only populated after auth
-	PublicKey string // for Auth'd requests, will be set to public key if Auth was successful, "" otherwise
-
 	// generic maps for middleware to stuff arbitrary data
 	middleware map[string]interface{}
 	postware   map[string]interface{}
