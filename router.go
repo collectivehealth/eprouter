@@ -294,7 +294,7 @@ func (router *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 		if clientDeepErr.StatusCode > 299 && clientDeepErr.StatusCode < 999 {
 			code = clientDeepErr.StatusCode
 		}
-		ctx.SendSimpleErrorPayload(code, clientDeepErr.Num, fmt.Sprintf("%d %s (err code: %d)", code, BadRequestSyntaxErrorPrefix, clientDeepErr.Num))
+		ctx.SendSimpleErrorPayload(code, clientDeepErr.Num, fmt.Sprintf("%d %s (err code: %d)", code, clientDeepErr.EndUserMsg, clientDeepErr.Num))
 		// log.Println("clientDeepErr.Num", clientDeepErr.Num)
 		return
 	}
