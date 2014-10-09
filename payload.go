@@ -98,19 +98,19 @@ func sendErrorPayload(ctx *Context, code int, errInfo ErrorInfo, alert string) {
 	payloadWrapper.Alert = alert
 
 	if errInfo.ErrorNumber != 0 {
-		ctx.AddHeader("eprouter-ErrorNumber", fmt.Sprintf("%d", errInfo.ErrorNumber))
+		ctx.AddResponseHeader("eprouter-ErrorNumber", fmt.Sprintf("%d", errInfo.ErrorNumber))
 	}
 	if len(errInfo.ErrorMessage) > 1 {
-		ctx.AddHeader("eprouter-ErrorMessage", fmt.Sprintf("%s", errInfo.ErrorMessage))
+		ctx.AddResponseHeader("eprouter-ErrorMessage", fmt.Sprintf("%s", errInfo.ErrorMessage))
 	}
 	if errInfo.DebugNumber != 0 {
-		ctx.AddHeader("eprouter-DebugNumber", fmt.Sprintf("%d", errInfo.DebugNumber))
+		ctx.AddResponseHeader("eprouter-DebugNumber", fmt.Sprintf("%d", errInfo.DebugNumber))
 	}
 	if len(errInfo.DebugMessage) > 1 {
-		ctx.AddHeader("eprouter-DebugMessage", fmt.Sprintf("%s", errInfo.DebugMessage))
+		ctx.AddResponseHeader("eprouter-DebugMessage", fmt.Sprintf("%s", errInfo.DebugMessage))
 	}
 	if len(alert) > 1 {
-		ctx.AddHeader("eprouter-Alert", fmt.Sprintf("%s", alert))
+		ctx.AddResponseHeader("eprouter-Alert", fmt.Sprintf("%s", alert))
 	}
 
 	writePayloadWrapper(ctx, code, payloadWrapper)
@@ -139,7 +139,7 @@ func writePayloadWrapper(ctx *Context, code int, payloadWrapper *PayloadWrapper)
 
 	ctx.written = true
 	ctx.StatusCode = code
-	ctx.SetHeader(HttpHeaderContentType, HttpHeaderContentTypeJSON)
+	ctx.SetResponseHeader(HttpHeaderContentType, HttpHeaderContentTypeJSON)
 
 	// This is the old way.  it doesn't give us status info.
 	// enc := json.NewEncoder(ctx.w)
@@ -155,8 +155,8 @@ func writePayloadWrapper(ctx *Context, code int, payloadWrapper *PayloadWrapper)
 		derr := deeperror.NewHTTPError(3589720731, "Fatal Internal Output Error", jsonErr, http.StatusInternalServerError)
 		responseWriter, ok := ctx.w.(http.ResponseWriter)
 		if ok {
-			ctx.AddHeader("X-ErrorNum", fmt.Sprintf("%d", derr.Num))
-			ctx.AddHeader("X-ErrorStr", fmt.Sprintf("%s", derr.EndUserMsg))
+			ctx.AddResponseHeader("X-ErrorNum", fmt.Sprintf("%d", derr.Num))
+			ctx.AddResponseHeader("X-ErrorStr", fmt.Sprintf("%s", derr.EndUserMsg))
 			responseWriter.WriteHeader(derr.StatusCode)
 			fmt.Fprintf(responseWriter, "{\"ErrorNumber\":%d,\"ErrorMessage\":%s}", derr.Num, derr.EndUserMsg)
 		}

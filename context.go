@@ -34,16 +34,16 @@ type Context struct {
 	ContentLength int  // The number of bytes written out. Only populated after a write.
 }
 
-func (ctx *Context) AddHeader(key, value string) {
+func (ctx *Context) AddResponseHeader(key, value string) {
 	ctx.w.Header().Add(key, value)
 }
-func (ctx *Context) DelHeader(key string) {
+func (ctx *Context) DeleteResponseHeader(key string) {
 	ctx.w.Header().Del(key)
 }
-func (ctx *Context) GetHeader(key string) string {
+func (ctx *Context) GetResponseHeader(key string) string {
 	return ctx.w.Header().Get(key)
 }
-func (ctx *Context) SetHeader(key, value string) {
+func (ctx *Context) SetResponseHeader(key, value string) {
 	ctx.w.Header().Set(key, value)
 }
 
@@ -107,7 +107,7 @@ func (ctx *Context) MakeRouteHandlerResultPayloads(payloads ...Payload) RouteHan
 }
 
 func (ctx *Context) MakeRouteHandlerResultRawBytes(statusCode int, rawBytes []byte, contentType string) RouteHandlerResult {
-	ctx.SetHeader(HttpHeaderContentType, contentType)
+	ctx.SetResponseHeader(HttpHeaderContentType, contentType)
 
 	return RouteHandlerResult{nil, nil, func(innerCtx *Context) {
 		if rw, isResponseWriter := innerCtx.w.(http.ResponseWriter); isResponseWriter {
@@ -128,7 +128,7 @@ func (ctx *Context) MakeRouteHandlerResultGenericJSON(v interface{}) RouteHandle
 	return ctx.MakeRouteHandlerResultStatusGenericJSON(http.StatusOK, v)
 }
 func (ctx *Context) MakeRouteHandlerResultStatusGenericJSON(statusCode int, v interface{}) RouteHandlerResult {
-	ctx.SetHeader(HttpHeaderContentType, HttpHeaderContentTypeJSON)
+	ctx.SetResponseHeader(HttpHeaderContentType, HttpHeaderContentTypeJSON)
 	jsonBytes, err := json.Marshal(v)
 	if err != nil {
 		rerr := NewRouteError(
