@@ -42,9 +42,9 @@ func (payload BookPayload) PayloadType() string {
 type BookController struct {
 }
 
-func (ctrlr *BookController) PerformAuth(routePtr *Route, ctx *Context) (authenticationWasSucessful bool, failureToAuthErrorNum int) {
+func (ctrlr *BookController) PerformAuth(routePtr *Route, ctx *Context) (authenticationWasSucessful bool, failureToAuthErrorNum int, failureToAuthErrorMessage string) {
 	// hard code test to fail
-	return false, 3220239796
+	return false, 3220239796, "authorization required"
 }
 
 func (self *BookController) GetHandlerV1(ctx *Context) RouteHandlerResult {

@@ -344,9 +344,9 @@ func (router *Router) handleContext(ctx *Context, req *http.Request) {
 
 	if routePtr.RequiresAuth {
 		// log.Println("RequiresAuth = true")
-		isAuthorized, failureToAuthErrorNum := routePtr.Authenticator.PerformAuth(routePtr, ctx)
+		isAuthorized, failureToAuthErrorNum, failureToAuthErrorMessage := routePtr.Authenticator.PerformAuth(routePtr, ctx)
 		if isAuthorized == false {
-			ctx.SendSimpleErrorPayload(http.StatusForbidden, int64(failureToAuthErrorNum), "Forbidden")
+			ctx.SendSimpleErrorPayload(http.StatusForbidden, int64(failureToAuthErrorNum), failureToAuthErrorMessage)
 			return
 		}
 	}
