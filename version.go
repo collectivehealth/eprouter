@@ -1,8 +1,8 @@
 package eprouter
 
 const (
-	internal_BUILD_NUMBER   = 45
-	internal_VERSION_STRING = "0.8.0"
+	internal_BUILD_NUMBER   = 46
+	internal_VERSION_STRING = "0.9.0"
 )
 
 func BuildNumber() int64 {
