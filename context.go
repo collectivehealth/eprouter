@@ -81,6 +81,9 @@ func (ctx *Context) MakeRouteHandlerResultError(code int, errNo int64, errMsg st
 		ErrorNumber:  errNo,
 		ErrorMessage: errMsg,
 	}
+
+	log.Printf("making an error result: %+v", errInfo)
+
 	return ctx.MakeRouteHandlerResultErrorInfo(code, errInfo)
 }
 func (ctx *Context) MakeRouteHandlerResultDebugError(code int, errNo int64, errMsg string, debugNo int64, debugMsg string) RouteHandlerResult {
@@ -90,10 +93,14 @@ func (ctx *Context) MakeRouteHandlerResultDebugError(code int, errNo int64, errM
 		DebugNumber:  debugNo,
 		DebugMessage: debugMsg,
 	}
+
+	log.Printf("making an error result: %+v", errInfo)
+
 	return ctx.MakeRouteHandlerResultErrorInfo(code, errInfo)
 }
 func (ctx *Context) MakeRouteHandlerResultErrorInfo(code int, errInfo ErrorInfo) RouteHandlerResult {
 	rerr := NewRouteError(code, errInfo)
+	log.Printf("making an error result: %+v", errInfo)
 	return RouteHandlerResult{rerr, nil, nil}
 }
 
@@ -137,6 +144,8 @@ func (ctx *Context) MakeRouteHandlerResultStatusGenericJSON(statusCode int, v in
 				ErrorNumber:  3913952842,
 				ErrorMessage: "Internal Server Error",
 			})
+
+		log.Printf("making an error result: %+v", rerr)
 		return RouteHandlerResult{rerr, nil, nil}
 	} else {
 		return RouteHandlerResult{nil, nil, func(innerCtx *Context) {

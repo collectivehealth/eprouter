@@ -333,12 +333,6 @@ func (router *Router) handleContext(ctx *Context, req *http.Request) {
 		ctx.SendSimpleErrorPayload(http.StatusBadRequest, BadRequestExtraneousPrimaryKeyErrorNumber, BadRequestSyntaxErrorPrefix)
 		return
 	}
-	//  update requires primary key
-	if (req.Method == "PATCH" || req.Method == "PUT") && ctx.Endpoint.PrimaryKey == "" && len(ctx.Endpoint.Extras) == 0 {
-		// log.Printf("400 for Method:%v, Endpoint %+v, routePtr:%+v, err:%v", req.Method, ctx.E, routePtr, err)
-		ctx.SendSimpleErrorPayload(http.StatusBadRequest, BadRequestMissingPrimaryKeyErrorNumber, BadRequestSyntaxErrorPrefix)
-		return
-	}
 
 	// 5. Auth
 

@@ -231,8 +231,6 @@ func TestRouter(t *testing.T) {
 		"/api/v3/book/1":   http.StatusNotFound,
 		"/api/v1/author/1": http.StatusNotFound,
 		"/api/v1/bogus/1":  http.StatusNotFound,
-
-		"/api/v1/book/": http.StatusBadRequest, // Update (PUT) should always have a pk
 	}
 
 	for urlsuffix, expectedStatusCode := range putURLAndStatusCodes {
