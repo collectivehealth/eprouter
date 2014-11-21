@@ -82,7 +82,7 @@ func (ctx *Context) MakeRouteHandlerResultError(code int, errNo int64, errMsg st
 		ErrorMessage: errMsg,
 	}
 
-	log.Printf("making an error result: %+v", errInfo)
+	// log.Printf("making an error result: %+v", errInfo)
 
 	return ctx.MakeRouteHandlerResultErrorInfo(code, errInfo)
 }
@@ -94,13 +94,13 @@ func (ctx *Context) MakeRouteHandlerResultDebugError(code int, errNo int64, errM
 		DebugMessage: debugMsg,
 	}
 
-	log.Printf("making an error result: %+v", errInfo)
+	// log.Printf("making an error result: %+v", errInfo)
 
 	return ctx.MakeRouteHandlerResultErrorInfo(code, errInfo)
 }
 func (ctx *Context) MakeRouteHandlerResultErrorInfo(code int, errInfo ErrorInfo) RouteHandlerResult {
 	rerr := NewRouteError(code, errInfo)
-	log.Printf("making an error result: %+v", errInfo)
+	// log.Printf("making an error result: %+v", errInfo)
 	return RouteHandlerResult{rerr, nil, nil}
 }
 

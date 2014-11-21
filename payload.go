@@ -175,10 +175,6 @@ func writePayloadWrapper(ctx *Context, code int, payloadWrapper *PayloadWrapper)
 			ctx.ContentLength = bytesWritten
 		}
 	}
-
-	for _, postproc := range ctx.router.PostProcessors {
-		postproc.Process(ctx)
-	}
 }
 
 //  #####

@@ -1,7 +1,7 @@
 package eprouter
 
 const (
-	internal_BUILD_NUMBER   = 46
+	internal_BUILD_NUMBER   = 49
 	internal_VERSION_STRING = "0.9.0"
 )
 

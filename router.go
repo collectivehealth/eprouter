@@ -7,6 +7,8 @@ import (
 	"reflect"
 	"sort"
 	"strings"
+
+	"github.com/amattn/deeperror/levels"
 )
 
 const (
@@ -28,6 +30,7 @@ type PayloadController interface {
 type Router struct {
 	BasePath string
 
+	PreProcessors        []PreProcessor
 	MiddlewareProcessors []MiddlewareProcessor
 	PostProcessors       []PostProcessor
 
@@ -42,6 +45,7 @@ func NewRouter() *Router {
 	router.Controllers = make(map[string]PayloadController)
 	router.RouteMap = make(map[string]*Route)
 
+	// router.PreProcessors = []PreProcessor{}
 	router.MiddlewareProcessors = []MiddlewareProcessor{}
 	router.PostProcessors = []PostProcessor{
 		new(CommonLogger),
@@ -268,19 +272,42 @@ func (router *Router) LogAllRoutes(addons ...string) {
 // 5. Auth (if necessary)
 // 6. Middleware
 // 7. call handler method
+// 8. any post processors
 
-// all writes to the responseWriter are done through writePayloadWrapper.
-
-// any post handler stuff should be called in writePayloadWrapper
+// Note on steps 1-8:
+// - post processors are always called, even if
 
 func (router *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
-	// 1. Any pre-handler stuff
-	// TODO
 
 	ctx := new(Context) // needs a leakybucket
 	ctx.w = w
 	ctx.Req = req
 	ctx.router = router
+
+	// we use defer so our post processors are ALWAYS called.
+	defer func() {
+		// 8. any post-handler stuff
+		for _, postproc := range ctx.router.PostProcessors {
+			terminateEarly, derr := postproc.Process(ctx)
+			if derr != nil {
+				log.Println(derr)
+			}
+			if terminateEarly {
+				return
+			}
+		}
+	}()
+
+	// 1. Any pre-handler stuff
+	for _, preproc := range ctx.router.PreProcessors {
+		terminateEarly, derr := preproc.Process(ctx)
+		if derr != nil {
+			log.Println(derr)
+		}
+		if terminateEarly {
+			return
+		}
+	}
 
 	// 2. parse the route
 	endpoint, clientDeepErr, serverDeepErr := parsePath(req.URL, router.BasePath)
@@ -352,22 +379,21 @@ func (router *Router) handleContext(ctx *Context, req *http.Request) {
 	}
 
 	// 7. call handler method
-	rhr := routePtr.Handler(ctx)
-	if rhr.rerr != nil {
-		rtErr := rhr.rerr
+	routeHandlerResult := routePtr.Handler(ctx)
+	if routeHandlerResult.rerr != nil {
+		rtErr := routeHandlerResult.rerr
+		if rtErr.ErrorLevel == levels.Undefined {
+			rtErr.ErrorLevel = levels.Error
+		}
+		log.Printf("%v %+v", rtErr.ErrorLevel, rtErr)
 		ctx.SendErrorInfoPayload(rtErr.statusCode, rtErr.errorInfo)
-	} else if rhr.pmap != nil {
-		ctx.WrapAndSendPayloadsMap(rhr.pmap)
-	} else if rhr.crr != nil {
-		rhr.crr(ctx)
+	} else if routeHandlerResult.pmap != nil {
+		ctx.WrapAndSendPayloadsMap(routeHandlerResult.pmap)
+	} else if routeHandlerResult.crr != nil {
+		routeHandlerResult.crr(ctx)
 	} else {
 		ctx.SendSimpleErrorPayload(http.StatusInternalServerError, 2302586595, "Invalid Handler response")
 	}
-
-	// 8. any post-handler stuff
-
-	// TODO
-
 }
 
 // RouteMap helpers

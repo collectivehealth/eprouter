@@ -13,6 +13,10 @@ type MiddlewareProcessor interface {
 	Process(routePtr *Route, ctx *Context) (terminateEarly bool, derr *deeperror.DeepError)
 }
 
+type PreProcessor interface {
+	Process(ctx *Context) (terminateEarly bool, derr *deeperror.DeepError)
+}
+
 type PostProcessor interface {
 	Process(ctx *Context) (terminateEarly bool, derr *deeperror.DeepError)
 }

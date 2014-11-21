@@ -1,5 +1,7 @@
 package eprouter
 
+import "github.com/amattn/deeperror/levels"
+
 type RouteHandler func(*Context) RouteHandlerResult
 
 type RouteHandlerResult struct {
@@ -10,6 +12,7 @@ type RouteHandlerResult struct {
 
 type RouteError struct {
 	statusCode int // HTTP Status code
+	ErrorLevel levels.ErrorLevel
 	errorInfo  ErrorInfo
 }
 
