@@ -45,7 +45,7 @@ func NewRouter() *Router {
 	router.Controllers = make(map[string]PayloadController)
 	router.RouteMap = make(map[string]*Route)
 
-	// router.PreProcessors = []PreProcessor{}
+	router.PreProcessors = []PreProcessor{}
 	router.MiddlewareProcessors = []MiddlewareProcessor{}
 	router.PostProcessors = []PostProcessor{
 		new(CommonLogger),
