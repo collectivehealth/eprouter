@@ -138,7 +138,7 @@ func TestRouter(t *testing.T) {
 		"/api/v1/book":         http.StatusOK,
 		"/api/v1/author/1":     http.StatusOK,
 		"/api/v1/bogus/1":      http.StatusNotFound,
-		"/api/v1/book/1/login": http.StatusForbidden,
+		"/api/v1/book/1/login": http.StatusUnauthorized,
 	}
 
 	commonTest := func(t *testing.T, response *http.Response, urlsuffix string) {

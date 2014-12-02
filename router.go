@@ -367,7 +367,7 @@ func (router *Router) handleContext(ctx *Context, req *http.Request) {
 		// log.Println("RequiresAuth = true")
 		isAuthorized, failureToAuthErrorNum, failureToAuthErrorMessage := routePtr.Authenticator.PerformAuth(routePtr, ctx)
 		if isAuthorized == false {
-			ctx.SendSimpleErrorPayload(http.StatusForbidden, int64(failureToAuthErrorNum), failureToAuthErrorMessage)
+			ctx.SendSimpleErrorPayload(http.StatusUnauthorized, int64(failureToAuthErrorNum), failureToAuthErrorMessage)
 			return
 		}
 	}

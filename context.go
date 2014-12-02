@@ -29,9 +29,10 @@ type Context struct {
 
 	// only populated after a write
 
-	written       bool // true after a write, false before.  Used to prevent "double writes".
-	StatusCode    int  // The http status code written out. Only populated after a write.
-	ContentLength int  // The number of bytes written out. Only populated after a write.
+	written       bool                   // true after a write, false before.  Used to prevent "double writes".
+	StatusCode    int                    // The http status code written out. Only populated after a write.
+	ContentLength int                    // The number of bytes written out. Only populated after a write.
+	AuthInfo      map[string]interface{} // a k/v store of any info about the user which was gleaned during authentication
 }
 
 func (ctx *Context) AddResponseHeader(key, value string) {
