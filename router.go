@@ -351,16 +351,6 @@ func (router *Router) handleContext(ctx *Context, req *http.Request) {
 		return
 	}
 
-	// 4. Some basic validation
-
-	if req.Method == "POST" && ctx.Endpoint.PrimaryKey != "" && len(ctx.Endpoint.Extras) == 1 {
-		// log.Printf("400 for Method:%v, Endpoint %+v, routePtr:%+v, err:%v", req.Method, ctx.E, routePtr, err)
-		// don't use http.Error!  use our sendErrorPayload instead
-		// http.Error(w, BadRequestExtraneousPrimaryKeyPrefix, http.StatusBadRequest)
-		ctx.SendSimpleErrorPayload(http.StatusBadRequest, BadRequestExtraneousPrimaryKeyErrorNumber, BadRequestSyntaxErrorPrefix)
-		return
-	}
-
 	// 5. Auth
 
 	if routePtr.RequiresAuth {

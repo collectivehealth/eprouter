@@ -15,6 +15,7 @@ type Endpoint struct {
 	EntityName string
 	PrimaryKey string
 	Action     string
+	Components []string
 	Extras     []string
 
 	// internal only
@@ -92,6 +93,8 @@ func parsePath(urlPtr *url.URL, prefix string) (endpoint Endpoint, clientErr, se
 	if pathComponentsLen >= 4 {
 		endpoint.Action = pathComponents[3]
 	}
+
+	endpoint.Components = pathComponents
 
 	return
 }
