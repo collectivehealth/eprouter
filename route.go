@@ -34,16 +34,83 @@ type Route struct {
 	Handler        RouteHandler
 	HandlerName    string // not actually used except for logging and debugging
 	ControllerName string // not actually used except for logging and debugging
+
+	part     string
+	Children []*Route
+}
+
+// A convenience method to get all the route description in the following format:
+//
+//     [AUTH] GET /path/../  <Controller>.<Action>
+func (n *Route) AllRoutesDescription() []string {
+	result := make([]string, 0, 5)
+	if n.Handler != nil {
+		msg := n.Method + " " + n.Path + " → " + n.ControllerName + "." + n.Action
+		// If Auth is required add AUTH to the head of the message
+		if n.RequiresAuth {
+			msg = "AUTH " + msg
+		}
+		result = append(result, msg)
+	}
+	for _, c := range n.Children {
+		result = append(result, c.AllRoutesDescription()...)
+	}
+	return result
+}
+
+func (n *Route) addNode(parts []string, handler RouteHandler, authHandler AuthHandler) *Route {
+	if len(parts) == 0 {
+		n.Handler = handler
+		n.Authenticator = authHandler
+		return n
+	} else if parts[0] == "" {
+		return n.addNode(parts[1:], handler, authHandler)
+	} else if n.Children == nil {
+		n.Children = make([]*Route, 0, 5)
+	}
+
+	part, rest := parts[0], parts[1:]
+
+	for _, c := range n.Children {
+		if c.part == part {
+			return c.addNode(rest, handler, authHandler)
+		}
+	}
+
+	c := new(Route)
+	c.part = part
+	n.Children = append(n.Children, c)
+	return c.addNode(rest, handler, authHandler)
+}
+
+func (n *Route) resolveRoute(parts []string) *Route {
+	if len(parts) == 0 {
+		return n
+	}
+
+	part, rest := parts[0], parts[1:]
+	if part == "" {
+		return n.resolveRoute(rest)
+	}
+
+	for _, child := range n.Children {
+		key := child.part
+		if key == "*" {
+			return child.resolveRoute(rest)
+		} else if strings.HasPrefix(key, ":") {
+			return child.resolveRoute(rest)
+		} else if key == part {
+			return child.resolveRoute(rest)
+		}
+	}
+	return nil
 }
 
 func parseVersionFromPrefixlessHandlerName(versionActionHandlerName string) (vStr string, action string) {
 	re := regexp.MustCompile("^V([0-9]+)(.*)")
 	matches := re.FindStringSubmatch(versionActionHandlerName)
-	// log.Printf("%q\n", matches)
 
 	if len(matches) < 3 {
-		// log.Println("2457509067", versionActionHandlerName)
-		// log.Fatalln("2457509067 Regular Expression failure.  Please file a bug")
 		log.Println("2457509067 Failed to parse V<#><Action> for", versionActionHandlerName)
 		return "", ""
 	}

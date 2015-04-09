@@ -16,11 +16,11 @@ type Endpoint struct {
 	PrimaryKey string
 	Action     string
 	Components []string
-	Extras     []string
 
 	// internal only
 	version        VersionUint
 	versionConvErr error
+	Extras     []string
 }
 
 // return a typed number, not a string

@@ -29,24 +29,24 @@ func TestParsePathValid(t *testing.T) {
 		"/api/v1/entity/?a=b&c=d",
 	}
 	expecteds := []Endpoint{
-		Endpoint{"1", "entity", "", "", []string{}, 0, nil},
-		Endpoint{"1", "entity", "someid", "", []string{"someid"}, 0, nil},
+		Endpoint{"1", "entity", "", "", []string{}, 0, nil, []string{}},
+		Endpoint{"1", "entity", "someid", "", []string{"someid"}, 0, nil, []string{}},
 
-		Endpoint{"1", "entity", "", "", []string{}, 0, nil},
-		Endpoint{"2", "entity", "", "", []string{}, 0, nil},
-		Endpoint{"3", "entity", "", "", []string{}, 0, nil},
+		Endpoint{"1", "entity", "", "", []string{}, 0, nil, []string{}},
+		Endpoint{"2", "entity", "", "", []string{}, 0, nil, []string{}},
+		Endpoint{"3", "entity", "", "", []string{}, 0, nil, []string{}},
 
-		Endpoint{"1", "entity", "someid", "", []string{"someid"}, 0, nil},
-		Endpoint{"1", "entity", "someid", "", []string{"someid"}, 0, nil},
-		Endpoint{"1", "entity", "123", "", []string{"123"}, 0, nil},
-		Endpoint{"1", "entity", "123", "action", []string{"123", "action"}, 0, nil},
-		Endpoint{"1", "entity", "123", "action", []string{"123", "action", "extra1"}, 0, nil},
+		Endpoint{"1", "entity", "someid", "", []string{"someid"}, 0, nil, []string{}},
+		Endpoint{"1", "entity", "someid", "", []string{"someid"}, 0, nil, []string{}},
+		Endpoint{"1", "entity", "123", "", []string{"123"}, 0, nil, []string{}},
+		Endpoint{"1", "entity", "123", "action", []string{"123", "action"}, 0, nil, []string{}},
+		Endpoint{"1", "entity", "123", "action", []string{"123", "action", "extra1"}, 0, nil, []string{}},
 
-		Endpoint{"1", "entity", "123", "action", []string{"123", "action", "extra1"}, 0, nil},
-		Endpoint{"1", "entity", "123", "action", []string{"123", "action"}, 0, nil},
-		Endpoint{"1", "entity", "123", "", []string{"123"}, 0, nil},
-		Endpoint{"1", "entity", "", "", []string{}, 0, nil},
-		Endpoint{"1", "entity", "", "", []string{}, 0, nil},
+		Endpoint{"1", "entity", "123", "action", []string{"123", "action", "extra1"}, 0, nil, []string{}},
+		Endpoint{"1", "entity", "123", "action", []string{"123", "action"}, 0, nil, []string{}},
+		Endpoint{"1", "entity", "123", "", []string{"123"}, 0, nil, []string{}},
+		Endpoint{"1", "entity", "", "", []string{}, 0, nil, []string{}},
+		Endpoint{"1", "entity", "", "", []string{}, 0, nil, []string{}},
 	}
 
 	// sanity check

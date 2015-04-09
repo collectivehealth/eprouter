@@ -5,7 +5,7 @@ import (
 	"log"
 	"net/http"
 	"reflect"
-	"sort"
+	"runtime"
 	"strings"
 
 	"github.com/amattn/deeperror/levels"
@@ -27,6 +27,11 @@ const (
 type PayloadController interface {
 }
 
+type ModifiablePayloadController interface {
+	RegisterRoutes(router *Router)
+	Version() string
+}
+
 type Router struct {
 	BasePath string
 
@@ -35,11 +40,12 @@ type Router struct {
 	PostProcessors       []PostProcessor
 
 	Controllers map[string]PayloadController // key is entity name
-	RouteMap    map[string]*Route            // key is entity name
+	RouteMap    map[string]*Route            // key is http method
+	entityName  string                       // Temporary internal variable
+	controller  PayloadController            // Temporary internal variable
 }
 
 func NewRouter() *Router {
-
 	router := new(Router)
 
 	router.Controllers = make(map[string]PayloadController)
@@ -64,6 +70,53 @@ func NewRouter() *Router {
 
 // Configuration of Router
 
+func (router *Router) registerRoute(method, path string, handler RouteHandler, auth AuthHandler) *Route {
+	node := router.RouteMap[method]
+	if node == nil {
+		node = new(Route)
+		router.RouteMap[method] = node
+	}
+	parts := strings.Split(path, "/")
+	added := node.addNode(parts, handler, auth)
+	added.Action = runtime.FuncForPC(reflect.ValueOf(handler).Pointer()).Name()
+	added.EntityName = router.entityName
+	added.ControllerName = reflect.TypeOf(router.controller).String()
+	added.Path = path
+	added.Method = method
+	return added
+}
+
+func (router *Router) ResolveRoute(method, path string) *Route {
+	node := router.RouteMap[method]
+	if node == nil {
+		return nil
+	}
+	parts := strings.Split(path, "/")
+	return node.resolveRoute(parts)
+}
+
+func (router *Router) RegisterRoute(method, version, path string, handler RouteHandler, authHandler AuthHandler) *Route {
+	actualPath := "/" + version + "/" + router.entityName + path
+	route := router.registerRoute(method, actualPath, handler, authHandler)
+	if authHandler != nil {
+		route.RequiresAuth = true
+	}
+	return route
+}
+
+func (router *Router) RegisterModifiableEntity(name string, payloadController ModifiablePayloadController) {
+	// Setup temp variables
+	router.entityName = name
+	router.controller = payloadController
+
+	payloadController.RegisterRoutes(router)
+	router.RegisterEntity(name, payloadController)
+
+	// Cleanup temp variables
+	router.entityName = ""
+	router.controller = nil
+}
+
 func (router *Router) RegisterEntity(name string, payloadController PayloadController) {
 	payloadControllerType := reflect.TypeOf(payloadController)
 	payloadControllerValue := reflect.ValueOf(payloadController)
@@ -76,6 +129,7 @@ func (router *Router) RegisterEntity(name string, payloadController PayloadContr
 	}
 
 	router.Controllers[name] = payloadController
+	router.controller = payloadController
 
 	authenticator, _ := payloadController.(AuthHandler)
 
@@ -92,7 +146,6 @@ func (router *Router) RegisterEntity(name string, payloadController PayloadContr
 }
 
 func (router *Router) AddEntityRoute(entityName, controllerName, handlerName string, unknownhandler interface{}, authenticator AuthHandler) {
-
 	// simple first:
 	if strings.Contains(handlerName, MAGIC_HANDLER_KEYWORD) == false {
 		// just skip it
@@ -175,69 +228,41 @@ func (router *Router) AddEntityRoute(entityName, controllerName, handlerName str
 	routePtr.Path += action
 	routePtr.VersionStr = versionStr
 
-	setRoute(router.RouteMap, routePtr.Method, routePtr.VersionStr, routePtr.Action, routePtr)
+	path := "/v" + routePtr.VersionStr + "/" + routePtr.EntityName
+	if routePtr.Action != "" {
+		path = path + "/" + routePtr.Action
+	}
+	if routePtr.RequiresAuth {
+		authenticator = routePtr.Authenticator
+	}
+	result := router.registerRoute(routePtr.Method, path, routePtr.Handler, authenticator)
+	result.Action = handlerName
+
+	path = "/v" + routePtr.VersionStr + "/" + routePtr.EntityName + "/:id"
+	if routePtr.Action != "" {
+		path = path + "/" + routePtr.Action
+	}
+	if routePtr.RequiresAuth {
+		authenticator = routePtr.Authenticator
+	}
+	result = router.registerRoute(routePtr.Method, path, routePtr.Handler, authenticator)
+	result.Action = handlerName
 }
 
 // Convenience method
 func (router *Router) AllRoutesCount() int {
-	return len(router.RouteMap)
+	data := router.AllRoutesDescription()
+	return len(data)
 }
 
 // Basically just used for logging and debugging.
 // the first addon is a prefix, all remaining addons are treated as suffixes and appended to the end
 func (router *Router) AllRoutesDescription(addons ...string) []string {
-	// log.Println("104194464 All Routes:")
-
-	var prefix string
-	var suffix string
-	if len(addons) >= 1 {
-		prefix = addons[0]
+	result := make([]string, 0, 100)
+	for _, route := range router.RouteMap {
+		result = append(result, route.AllRoutesDescription()...)
 	}
-	if len(addons) >= 2 {
-		suffix = strings.Join(addons[1:], " ")
-	}
-
-	count := len(router.RouteMap)
-
-	routeKeys := make([]string, 0, count)
-	for routeKey, _ := range router.RouteMap {
-		routeKeys = append(routeKeys, routeKey)
-	}
-	sort.Strings(routeKeys)
-
-	lines := make([]string, 0, count)
-
-	for _, routeKey := range routeKeys {
-		routePtr := router.RouteMap[routeKey]
-		method, versionStr, entityName, action := routeComponents(routeKey)
-		handlerType := reflect.TypeOf(routePtr.Handler)
-
-		if action == "" {
-			action = "<NONE>"
-		}
-
-		line := fmt.Sprintln(
-			method,
-			fmt.Sprintf("%vv%v/%v", router.BasePath, versionStr, routePtr.Path),
-			"Entity:", entityName,
-			"Action:", action,
-			routePtr.ControllerName,
-			routePtr.HandlerName,
-			handlerType,
-		)
-
-		line = strings.Join([]string{prefix, line, suffix}, " ")
-		line = strings.TrimSpace(line)
-
-		lines = append(lines, line)
-	}
-	// log.Println("104194464 End Routes")
-
-	// log.Println("104194464 RouteKeys")
-	// for routeKey, _ := range router.RouteMap {
-	// 	log.Println(routeKey)
-	// }
-	return lines
+	return result
 }
 
 // Basically just used for logging and debugging.
@@ -343,16 +368,17 @@ func (router *Router) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 }
 
 func (router *Router) handleContext(ctx *Context, req *http.Request) {
-
 	// 3. lookup the handler method
-	routePtr, err := getRoute(router.RouteMap, req.Method, ctx.Endpoint.VersionStr, ctx.Endpoint.EntityName, ctx.Endpoint.Action)
-	if err != nil || routePtr == nil {
+	routePtr := router.ResolveRoute(req.Method, req.URL.Path[len(router.BasePath):])
+	if routePtr == nil || routePtr.Handler == nil {
 		ctx.SendSimpleErrorPayload(http.StatusNotFound, NotFoundErrorNumber, "404 Not Found")
 		return
 	}
 
-	// 5. Auth
+	// 4. validate/auth route
+	// TODO Nothing to do
 
+	// 5. Auth
 	if routePtr.RequiresAuth {
 		// log.Println("RequiresAuth = true")
 		isAuthorized, failureToAuthErrorNum, failureToAuthErrorMessage := routePtr.Authenticator.PerformAuth(routePtr, ctx)
@@ -384,53 +410,4 @@ func (router *Router) handleContext(ctx *Context, req *http.Request) {
 	} else {
 		ctx.SendSimpleErrorPayload(http.StatusInternalServerError, 2302586595, "Invalid Handler response")
 	}
-}
-
-// RouteMap helpers
-const ROUTE_MAP_SEPARATOR = "-{&|!?}-"
-
-func getRoute(routeMap map[string]*Route, method, versionString, entityName, action string) (*Route, error) {
-	rk := routeKey(method, versionString, entityName, action)
-	// log.Println("rk", rk)
-	return routeMap[rk], nil
-}
-func setRoute(routeMap map[string]*Route, method, versionString, action string, route *Route) error {
-	rk := routeKey(method, versionString, route.EntityName, action)
-	// log.Println("rk", rk)
-	routeMap[rk] = route
-	return nil
-}
-func routeKey(method, versionString, entityName, action string) string {
-	return routeKeyJoinString(method, versionString, entityName, action)
-}
-func routeComponents(routeKey string) (method, versionString, entityName, action string) {
-	components := strings.Split(routeKey, ROUTE_MAP_SEPARATOR)
-	entityName = components[0]
-	method = components[1]
-	versionString = components[2]
-	action = components[3]
-	return
-}
-
-func routeKeyJoinString(method, versionString, entityName, action string) string {
-	// The order is fairly arbitrary, but makes for nicely ordered list of routes
-	// when we sort be routeKey.  (only important for AllRoutesSummary)
-	keyComponents := []string{
-		strings.ToLower(entityName),
-		method,
-		versionString,
-		strings.ToLower(action)}
-	return strings.Join(keyComponents, ROUTE_MAP_SEPARATOR)
-}
-
-func routeKeyFormatString(method, versionString, entityName, action string) string {
-	return fmt.Sprintf("%s%s%s%s%d%s%s",
-		strings.ToLower(entityName),
-		ROUTE_MAP_SEPARATOR,
-		method,
-		ROUTE_MAP_SEPARATOR,
-		versionString,
-		ROUTE_MAP_SEPARATOR,
-		action,
-	)
 }

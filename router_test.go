@@ -316,21 +316,3 @@ func TestPayload(t *testing.T) {
 		}
 	}
 }
-
-// Benchmark our routeKey Algorithms.  this is called every request.
-
-//As of 2013-09-19, Go 1.1, rMBP
-//BenchmarkRouteKeyJoinString	 5000000	       483 ns/op
-func BenchmarkRouteKeyJoinString(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		routeKeyJoinString("GET", "1", "book", "all")
-	}
-}
-
-//As of 2013-09-19, Go 1.1, rMBP
-//BenchmarkRouteKeyFormatString	 1000000	      1249 ns/op
-func BenchmarkRouteKeyFormatString(b *testing.B) {
-	for i := 0; i < b.N; i++ {
-		routeKeyFormatString("GET", "1", "book", "all")
-	}
-}
